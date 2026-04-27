@@ -2,8 +2,8 @@
 
 hey {{name}},
 
-what kind of videos do you want to make with YumCut?
-reply with what you want to create, what it's for, or any question you have, and i'll do my best to help.
+want 30 tokens for video creation?
+reply with what you want to make in YumCut, or any question you have. I'll add 30 tokens to your balance after your reply.
 
 - Igor
 
