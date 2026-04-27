@@ -84,7 +84,7 @@ function normalizeLanguage(value: unknown): string {
 }
 
 function defaultGreetingName(language: string): string {
-  return language === 'ru' ? 'друг' : 'there';
+  return language === 'ru' ? '' : 'there';
 }
 
 function pickGreetingName(name: string | null | undefined, language: string): string {
@@ -293,8 +293,16 @@ function makeTemplateVariables(params: {
   extra?: Record<string, string>;
 }) {
   const greetingName = pickGreetingName(params.name, params.language);
+  const nameCommaSuffix = greetingName ? `, ${greetingName}` : '';
+  const nameSpaceSuffix = greetingName ? ` ${greetingName}` : '';
+  const namePrefixComma = greetingName ? `${greetingName}, ` : '';
+  const nameForClause = greetingName ? ` для ${greetingName}` : '';
   return {
     name: greetingName,
+    name_comma_suffix: nameCommaSuffix,
+    name_space_suffix: nameSpaceSuffix,
+    name_prefix_comma: namePrefixComma,
+    name_for_clause: nameForClause,
     bonus_tokens: String(TOKEN_COSTS.emailReplyBonus),
     ...(params.extra ?? {}),
   };

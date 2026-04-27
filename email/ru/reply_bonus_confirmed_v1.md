@@ -1,6 +1,6 @@
 # {{bonus_tokens}} токенов добавлены
 
-👋 {{name}}!
+👋{{name_space_suffix}}!
 
 Я добавил {{bonus_tokens}} токенов на ваш баланс.
 

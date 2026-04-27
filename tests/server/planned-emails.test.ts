@@ -150,6 +150,35 @@ describe('planned emails localization', () => {
     );
   });
 
+  it('renders russian welcome naturally when name is missing', async () => {
+    mockClaimedEmails([
+      {
+        id: 'planned-ru-no-name',
+        userId: 'user-ru-no-name',
+        email: 'user@example.com',
+        kind: 'welcome_v1',
+        attempts: 0,
+        targetLanguage: 'ru',
+        user: { preferredLanguage: 'ru', name: null },
+      },
+    ]);
+
+    await processPlannedEmails({ limit: 10 });
+
+    expect(resendSendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'личное сообщение',
+        text: expect.stringContaining('здравствуйте!'),
+      }),
+    );
+
+    expect(resendSendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.not.stringContaining('друг'),
+      }),
+    );
+  });
+
   it('falls back to english template when language template is missing', async () => {
     mockClaimedEmails([
       {
