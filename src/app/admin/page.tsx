@@ -15,12 +15,13 @@ import { AdminNotificationSettingsForm } from '@/components/admin/AdminNotificat
 import { AdminVoiceProviderSettingsForm } from '@/components/admin/AdminVoiceProviderSettingsForm';
 import { AdminImageEditorSettingsForm } from '@/components/admin/AdminImageEditorSettingsForm';
 import { AdminProjectCreationSettingsForm } from '@/components/admin/AdminProjectCreationSettingsForm';
-import { AdminProjectCardMobile } from '@/components/admin/AdminProjectCardMobile';
 import { getProjectCreationSettings } from '@/server/admin/project-creation';
 import { AdminDashboardUserMetricsSection } from '@/components/admin/AdminDashboardUserMetricsSection';
+import { listTransactions } from '@/server/admin/transactions';
+import { AdminTransactionCard } from '@/components/admin/AdminTransactionCard';
 
 export default async function AdminHomePage() {
-  const [snapshotWithoutGuests, snapshotWithGuests, notificationSettings, publishQueue, voiceProviderSettings, imageEditorSettings, projectCreationSettings] = await Promise.all([
+  const [snapshotWithoutGuests, snapshotWithGuests, notificationSettings, publishQueue, voiceProviderSettings, imageEditorSettings, projectCreationSettings, recentTransactions] = await Promise.all([
     getAdminDashboardSnapshot(),
     getAdminDashboardSnapshot({ includeGuestUsers: true }),
     getAdminNotificationSettings(),
@@ -28,6 +29,7 @@ export default async function AdminHomePage() {
     getAdminVoiceProviderSettings(),
     getAdminImageEditorSettings(),
     getProjectCreationSettings(),
+    listTransactions({ page: 1, pageSize: 5 }),
   ]);
   const snapshot = snapshotWithoutGuests;
   const queueStatuses = ['pending', 'retry', 'processing', 'scheduled', 'failed'] as const;
@@ -99,62 +101,21 @@ export default async function AdminHomePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between min-w-0">
-            <CardTitle className="truncate">Recent projects</CardTitle>
+            <CardTitle className="truncate">Recent transactions</CardTitle>
             <Button asChild variant="outline" size="sm">
-              <Link href="/admin/projects">View all</Link>
+              <Link href="/admin/transactions">View all</Link>
             </Button>
           </CardHeader>
           <CardContent className="space-y-3 overflow-hidden">
-            {/* Mobile cards */}
-            <div className="sm:hidden max-h-[45vh] overflow-auto pr-3 space-y-2">
-              {snapshot.recentProjects.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-300">No projects yet.</p>
-              ) : (
-                snapshot.recentProjects.map((project: { id: string; title: string; status: import('@/shared/constants/status').ProjectStatus; createdAt: string; tokensUsed: number; user: { id: string; email: string; name: string | null } }) => (
-                  <AdminProjectCardMobile
-                    key={project.id}
-                    id={project.id}
-                    title={project.title}
-                    status={project.status}
-                    createdAtLabel={formatDateTimeAdmin(project.createdAt)}
-                    tokensUsed={project.tokensUsed}
-                    userDisplay={project.user.name || project.user.email}
-                  />
-                ))
-              )}
-            </div>
-            {/* Desktop list */}
-            <div className="hidden sm:block">
-              {snapshot.recentProjects.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-300">No projects yet.</p>
-              ) : (
-                <div className="max-h-[45vh] w-full min-w-0 overflow-auto pr-1 space-y-3">
-                  {snapshot.recentProjects.map((project: { id: string; title: string; status: import('@/shared/constants/status').ProjectStatus; createdAt: string; tokensUsed: number; user: { id: string; email: string; name: string | null } }) => (
-                    <Link
-                      key={project.id}
-                      href={`/admin/projects/${project.id}`}
-                      className="block w-full min-w-0 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-950 dark:hover:border-gray-700 dark:hover:bg-gray-900"
-                    >
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <div className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100">{project.title}</div>
-                        <div className="shrink-0">
-                          <AdminStatusPill status={project.status} />
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Created {formatDateTimeAdmin(project.createdAt)}
-                      </div>
-                      <div className="text-xs text-amber-700 dark:text-amber-300">
-                        Used {project.tokensUsed.toLocaleString()} tokens
-                      </div>
-                      <div className="truncate text-xs text-gray-500 dark:text-gray-400 break-words">
-                        {project.user.name || project.user.email}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {recentTransactions.items.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-300">No token activity recorded.</p>
+            ) : (
+              <div className="max-h-[45vh] w-full min-w-0 overflow-auto pr-1 space-y-3">
+                {recentTransactions.items.map((transaction) => (
+                  <AdminTransactionCard key={transaction.id} transaction={transaction} />
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </AdminDashboardUserMetricsSection>

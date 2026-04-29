@@ -173,7 +173,9 @@ export function AdminDashboardUserMetricsSection({
           </CardContent>
         </Card>
 
-        {children}
+        <div className="space-y-4">
+          {children}
+        </div>
       </div>
     </>
   );
