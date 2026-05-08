@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { generateKeyPairSync } from 'node:crypto';
 
-// eslint-disable-next-line import/no-named-as-default
 import {
   issueSignedUploadGrant,
   verifySignedUploadGrant,
