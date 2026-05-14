@@ -233,6 +233,25 @@ describe('admin character routes', () => {
     expect(softDeleteAdminCharacters).not.toHaveBeenCalled();
   });
 
+  it('POST /api/admin/characters/bulk-delete accepts same host behind reverse proxy', async () => {
+    softDeleteAdminCharacters.mockResolvedValueOnce(1);
+    const route = await import('@/app/api/admin/characters/bulk-delete/route');
+    const req = new NextRequest('http://127.0.0.1:3111/api/admin/characters/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids: ['ch-1'] }),
+      headers: {
+        'content-type': 'application/json',
+        host: 'app.yumcut.com',
+        origin: 'https://app.yumcut.com',
+        'x-forwarded-host': 'app.yumcut.com',
+        'x-forwarded-proto': 'https',
+      },
+    });
+    const res = await route.POST(req);
+    expect(res.status).toBe(200);
+    expect(softDeleteAdminCharacters).toHaveBeenCalledWith(['ch-1'], false);
+  });
+
   it('POST /api/admin/characters/bulk-visibility updates selected visibility', async () => {
     bulkSetAdminCharactersVisibility.mockResolvedValueOnce(2);
     const route = await import('@/app/api/admin/characters/bulk-visibility/route');

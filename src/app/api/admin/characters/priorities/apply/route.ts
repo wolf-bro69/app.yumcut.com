@@ -3,6 +3,7 @@ import { withApiError } from '@/server/errors';
 import { requireAdminApiSession } from '@/server/admin';
 import { error as httpError, ok } from '@/server/http';
 import { applyAdminCharacterPriorities } from '@/server/admin/characters';
+import { isSameSiteRequestOrigin } from '@/server/request-origin';
 
 const MAX_PRIORITY_SLUGS = 10000;
 
@@ -10,8 +11,7 @@ export const POST = withApiError(async function POST(req: NextRequest) {
   const { session, error } = await requireAdminApiSession();
   if (!session) return error;
 
-  const origin = req.headers.get('origin');
-  if (origin && origin !== req.nextUrl.origin) {
+  if (!isSameSiteRequestOrigin(req)) {
     return httpError('FORBIDDEN', 'Invalid origin', 403);
   }
 
