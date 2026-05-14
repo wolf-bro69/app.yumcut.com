@@ -15,6 +15,7 @@ import { createHandledError } from './error';
 import { ensureProjectScaffold, ensureLanguageWorkspace } from '../language-workspace';
 import { isCustomTemplateData } from '@/shared/templates/custom-data';
 import { normalizeContentTone } from '@/shared/constants/content-tone';
+import { clampCharacterAudioDuration } from '../character-audio-duration';
 
 type SupportedVoiceProvider = 'minimax' | 'elevenlabs' | 'inworld';
 const STYLE_SUPPORTED_PROVIDERS: ReadonlySet<SupportedVoiceProvider> = new Set(['elevenlabs']);
@@ -220,9 +221,13 @@ export async function handleAudioPhase({ projectId, cfg, jobPayload }: AudioPhas
           audioStyleApplied: !!stylePrompt,
         });
 
+        const shouldClampCharacterAudio = cfg.projectExperience === 'character';
         const uploaded: { id: string; path: string; url: string; localPath: string }[] = [];
         for (const output of outputs) {
-          const candidate = await addAudioCandidate(projectId, output.path, languageCode);
+          const audioPath = shouldClampCharacterAudio
+            ? (await clampCharacterAudioDuration({ projectId, languageCode, inputPath: output.path })).path
+            : output.path;
+          const candidate = await addAudioCandidate(projectId, audioPath, languageCode);
           uploaded.push(candidate);
         }
 
