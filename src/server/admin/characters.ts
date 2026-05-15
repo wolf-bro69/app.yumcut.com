@@ -231,6 +231,7 @@ type CharacterAssetSnapshot = {
   variations: Array<{
     imagePath: string | null;
     emptyImagePath: string | null;
+    imageVariants?: Array<{ path: string | null }>;
   }>;
 };
 
@@ -239,7 +240,11 @@ function collectCharacterAssetPaths(characters: CharacterAssetSnapshot[]): strin
   for (const character of characters) {
     const candidates = [
       character.previewVideoUrl,
-      ...character.variations.flatMap((variation) => [variation.imagePath, variation.emptyImagePath]),
+      ...character.variations.flatMap((variation) => [
+        variation.imagePath,
+        variation.emptyImagePath,
+        ...(variation.imageVariants ?? []).map((variant) => variant.path),
+      ]),
     ];
     for (const candidate of candidates) {
       if (!candidate) continue;
@@ -952,7 +957,11 @@ export async function softDeleteAdminCharacter(id: string, deleteFiles = false):
       select: {
         previewVideoUrl: true,
         variations: {
-          select: { imagePath: true, emptyImagePath: true },
+          select: {
+            imagePath: true,
+            emptyImagePath: true,
+            imageVariants: { select: { path: true } },
+          },
         },
       },
     })
@@ -984,7 +993,11 @@ export async function softDeleteAdminCharacters(ids: string[], deleteFiles = fal
       select: {
         previewVideoUrl: true,
         variations: {
-          select: { imagePath: true, emptyImagePath: true },
+          select: {
+            imagePath: true,
+            emptyImagePath: true,
+            imageVariants: { select: { path: true } },
+          },
         },
       },
     })

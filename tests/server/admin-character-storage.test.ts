@@ -151,7 +151,11 @@ describe('admin character storage-backed assets', () => {
   it('deletes stored images and preview videos when deleting catalog files', async () => {
     prisma.character.findUnique.mockResolvedValueOnce({
       previewVideoUrl: 'characters/catalog/preview.mp4',
-      variations: [{ imagePath: 'characters/catalog/prepared.webp', emptyImagePath: 'characters/catalog/empty.webp' }],
+      variations: [{
+        imagePath: 'characters/catalog/prepared.webp',
+        emptyImagePath: 'characters/catalog/empty.webp',
+        imageVariants: [{ path: 'characters/variants/catalog-preview/h896/prepared.webp' }],
+      }],
     });
 
     await adminCharacters.softDeleteAdminCharacter('ch-1', true);
@@ -160,6 +164,7 @@ describe('admin character storage-backed assets', () => {
       'characters/catalog/preview.mp4',
       'characters/catalog/prepared.webp',
       'characters/catalog/empty.webp',
+      'characters/variants/catalog-preview/h896/prepared.webp',
     ]);
   });
 });

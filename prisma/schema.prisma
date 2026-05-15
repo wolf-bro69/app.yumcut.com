@@ -323,9 +323,27 @@ model CharacterVariation {
   emptyImagePath String? @db.VarChar(512)
   priority    Int       @default(0)
   character   Character @relation(fields: [characterId], references: [id])
+  imageVariants CharacterImageVariant[]
 
   @@index([characterId])
   @@index([characterId, priority])
+}
+
+model CharacterImageVariant {
+  id                   String             @id @default(uuid()) @db.Char(36)
+  characterVariationId String             @db.Char(36)
+  kind                 String             @db.VarChar(32)
+  height               Int
+  width                Int?
+  path                 String             @db.VarChar(512)
+  url                  String?            @db.VarChar(512)
+  status               String             @default("ready") @db.VarChar(16)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  variation            CharacterVariation @relation(fields: [characterVariationId], references: [id], onDelete: Cascade)
+
+  @@unique([characterVariationId, kind, height])
+  @@index([kind, height])
 }
 
 model UserFavoriteCharacter {

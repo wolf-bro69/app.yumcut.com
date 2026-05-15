@@ -13,6 +13,12 @@ import {
   type MainPageGroupCharacter,
 } from '@/components/character/main-page-groups';
 import { normalizeMediaUrl } from '@/server/storage';
+import {
+  CHARACTER_CATALOG_PREVIEW_IMAGE_HEIGHT,
+  CHARACTER_CATALOG_PREVIEW_IMAGE_KIND,
+  resolveCatalogPreviewImageUrl,
+  type CharacterPreviewVariationRecord,
+} from '@/server/character-preview-images';
 
 type RawCharacter = MainPageGroupCharacter;
 type RawGroup = MainPageGroup;
@@ -87,9 +93,11 @@ function buildCatalogPreviewOverrides(groups: RawGroup[]): Map<string, CatalogPr
 
 const catalogPreviewOverrides = buildCatalogPreviewOverrides(loadRawGroupsFromJson());
 
-function pickPrimaryVariationImagePath(
-  variations: Array<{ imagePath: string | null }>
-): string {
+function pickPrimaryVariationImagePath(variations: CharacterPreviewVariationRecord[]): string {
+  return resolveCatalogPreviewImageUrl(variations);
+}
+
+function pickOriginalVariationImagePath(variations: Array<{ imagePath: string | null }>): string {
   const first = variations.find((entry) => !!entry.imagePath)?.imagePath ?? null;
   return normalizeCatalogAssetUrl(first) ?? '';
 }
@@ -350,7 +358,18 @@ export async function listCharacterCatalogGroups(
               defaultVoiceProvider: true,
               variations: {
                 orderBy: [{ priority: 'desc' }, { id: 'asc' }],
-                select: { imagePath: true },
+                select: {
+                  id: true,
+                  imagePath: true,
+                  imageVariants: {
+                    where: {
+                      kind: CHARACTER_CATALOG_PREVIEW_IMAGE_KIND,
+                      height: CHARACTER_CATALOG_PREVIEW_IMAGE_HEIGHT,
+                      status: 'ready',
+                    },
+                    select: { kind: true, height: true, status: true, path: true, url: true },
+                  },
+                },
               },
             },
           },
@@ -458,7 +477,18 @@ export async function listMobileCharacterCatalog(
               defaultVoiceProvider: true,
               variations: {
                 orderBy: [{ priority: 'desc' }, { id: 'asc' }],
-                select: { imagePath: true },
+                select: {
+                  id: true,
+                  imagePath: true,
+                  imageVariants: {
+                    where: {
+                      kind: CHARACTER_CATALOG_PREVIEW_IMAGE_KIND,
+                      height: CHARACTER_CATALOG_PREVIEW_IMAGE_HEIGHT,
+                      status: 'ready',
+                    },
+                    select: { kind: true, height: true, status: true, path: true, url: true },
+                  },
+                },
               },
             },
           },
@@ -553,7 +583,18 @@ export async function getCharacterCatalogProfileBySlug(
       defaultVoiceProvider: true,
       variations: {
         orderBy: [{ priority: 'desc' }, { id: 'asc' }],
-        select: { imagePath: true },
+        select: {
+          id: true,
+          imagePath: true,
+          imageVariants: {
+            where: {
+              kind: CHARACTER_CATALOG_PREVIEW_IMAGE_KIND,
+              height: CHARACTER_CATALOG_PREVIEW_IMAGE_HEIGHT,
+              status: 'ready',
+            },
+            select: { kind: true, height: true, status: true, path: true, url: true },
+          },
+        },
       },
     },
   });
@@ -579,7 +620,7 @@ export async function getCharacterCatalogProfileBySlug(
     name: character.name?.trim() || character.title,
     tagline: fallbackTagline,
     bio: character.bio?.trim() || character.description?.trim() || '',
-    previewImageUrl: pickPrimaryVariationImagePath(character.variations),
+    previewImageUrl: pickOriginalVariationImagePath(character.variations),
     previewVideoUrl: previewVideo.previewVideoUrl,
     previewVideoHasAudio: previewVideo.previewVideoHasAudio,
     defaultVoiceId: character.defaultVoiceId ?? null,
